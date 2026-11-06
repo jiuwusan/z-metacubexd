@@ -34,6 +34,7 @@ import { useBatchLatencyTest } from '~/composables/useBatchLatencyTest'
 import {
   MOBILE_NAV_RESELECT_EVENT,
   PROXIES_DISPLAY_MODE,
+  PROXIES_PREVIEW_TYPE,
   ROUTES,
 } from '~/constants'
 import {

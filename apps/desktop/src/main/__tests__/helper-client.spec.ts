@@ -2,7 +2,7 @@ import type { Socket } from 'node:net'
 import type { HelperKernel, HelperServer } from '../helper/server'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   createHelperClient,
@@ -44,7 +44,10 @@ describe('createHelperClient', () => {
 
   beforeEach(async () => {
     dir = await mkdtemp(join(tmpdir(), 'mcxd-helper-client-'))
-    socketPath = join(dir, 'helper.sock')
+    socketPath =
+      process.platform === 'win32'
+        ? String.raw`\\.\pipe\mcxd-` + basename(dir)
+        : join(dir, 'helper.sock')
     server = undefined
   })
 

@@ -1,8 +1,8 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
-import { useProxiesStore } from '../proxies'
 import { useEndpointStore } from '../endpoint'
+import { useProxiesStore } from '../proxies'
 
 const apiMocks = vi.hoisted(() => ({
   fetchProxyProvidersAPI: vi.fn(),

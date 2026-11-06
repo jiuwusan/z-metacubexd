@@ -14,13 +14,14 @@
     "generate:mock": "MOCK_MODE=true nuxt generate",
     "generate:desktop": "NUXT_APP_BASE_URL=./ MCXD_DISABLE_PWA=true nuxt generate",
     "postinstall": "nuxt prepare",
-    "lint": "eslint --fix .",
+    "lint": "eslint .",
     "preview": "nuxt preview --host",
     "screenshot": "tsx scripts/screenshot.ts",
     "test:e2e": "vitest run e2e/",
-    "test:unit": "vitest run --exclude='e2e/**'",
+    "test:unit": "vitest run --exclude='e2e/**' --maxWorkers=4",
     "test:coverage": "vitest run --coverage --exclude='e2e/**'",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "lint:fix": "eslint --fix ."
   },
   "dependencies": {
     "@metacubexd/config-editor": "workspace:*",

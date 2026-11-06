@@ -1,35 +1,36 @@
+import { normalize } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { resolveMihomoBinary } from '../binary-path'
 
 const base = {
   isPackaged: false,
-  resourcesPath: '/app/resources',
-  appPath: '/repo/apps/desktop',
+  resourcesPath: normalize('/app/resources'),
+  appPath: normalize('/repo/apps/desktop'),
 }
 
 describe('resolveMihomoBinary', () => {
   it('uses resourcesPath when packaged (unix)', () => {
     expect(
       resolveMihomoBinary({ ...base, isPackaged: true, platform: 'darwin' }),
-    ).toBe('/app/resources/mihomo')
+    ).toBe(normalize('/app/resources/mihomo'))
   })
 
   it('uses appPath/resources when not packaged (dev, unix)', () => {
     expect(
       resolveMihomoBinary({ ...base, isPackaged: false, platform: 'linux' }),
-    ).toBe('/repo/apps/desktop/resources/mihomo')
+    ).toBe(normalize('/repo/apps/desktop/resources/mihomo'))
   })
 
   it('appends .exe on win32 (packaged)', () => {
     expect(
       resolveMihomoBinary({ ...base, isPackaged: true, platform: 'win32' }),
-    ).toBe('/app/resources/mihomo.exe')
+    ).toBe(normalize('/app/resources/mihomo.exe'))
   })
 
   it('appends .exe on win32 (dev)', () => {
     expect(
       resolveMihomoBinary({ ...base, isPackaged: false, platform: 'win32' }),
-    ).toBe('/repo/apps/desktop/resources/mihomo.exe')
+    ).toBe(normalize('/repo/apps/desktop/resources/mihomo.exe'))
   })
 
   it('user override always wins, verbatim, regardless of packaging/platform', () => {
@@ -51,6 +52,6 @@ describe('resolveMihomoBinary', () => {
         platform: 'darwin',
         userOverride: '',
       }),
-    ).toBe('/app/resources/mihomo')
+    ).toBe(normalize('/app/resources/mihomo'))
   })
 })

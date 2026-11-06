@@ -5,7 +5,14 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { createSupervisor } from './supervisor'
+import { createSupervisor as createSupervisorForPlatform } from './supervisor'
+
+// FakeProc models POSIX kill/exit. Host Windows must never tree-kill its fake PID.
+// Windows-specific tests explicitly override this injected platform.
+const createSupervisor = (
+  opts: Parameters<typeof createSupervisorForPlatform>[0],
+  deps: Parameters<typeof createSupervisorForPlatform>[1] = {},
+) => createSupervisorForPlatform(opts, { platform: 'linux', ...deps })
 
 // Minimal ChildProcess double: stdout/stderr emitters + kill spy + emit-exit helper.
 class FakeProc extends EventEmitter {

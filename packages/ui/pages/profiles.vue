@@ -13,6 +13,7 @@ import {
 } from '@tabler/icons-vue'
 import { toast } from 'vue-sonner'
 import { onControlInvalidate } from '~/composables/useControlSync'
+import { formatTimeFromNow } from '~/utils'
 import { controlErrorMessage } from '~/utils/controlError'
 
 const { t, locale } = useI18n()

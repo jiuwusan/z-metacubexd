@@ -18,12 +18,16 @@
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "prepare:husky": "husky",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "node --test scripts/*.test.mjs && pnpm --filter @metacubexd/config-editor test && pnpm --filter @metacubexd/agent test && pnpm --filter @metacubexd/server test && pnpm --filter @metacubexd/desktop test && pnpm --filter @metacubexd/ui test:unit",
+    "check:architecture": "node scripts/check-architecture.mjs",
+    "check": "pnpm check:architecture && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
-    "husky": "catalog:",
-    "commitlint": "catalog:",
+    "@babel/parser": "catalog:",
     "@commitlint/config-conventional": "catalog:",
+    "commitlint": "catalog:",
+    "husky": "catalog:",
     "lint-staged": "catalog:"
   }
 }

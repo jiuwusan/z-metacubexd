@@ -12,7 +12,7 @@ import {
 } from 'node:fs/promises'
 import { connect } from 'node:net'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   encodeMessage,
@@ -103,7 +103,10 @@ describe('createHelperServer', () => {
 
   beforeEach(async () => {
     dir = await mkdtemp(join(tmpdir(), 'mcxd-helper-'))
-    socketPath = join(dir, 'helper.sock')
+    socketPath =
+      process.platform === 'win32'
+        ? String.raw`\\.\pipe\mcxd-` + basename(dir)
+        : join(dir, 'helper.sock')
     server = undefined
   })
 
@@ -129,52 +132,58 @@ describe('createHelperServer', () => {
     })
   })
 
-  it('allows an unprivileged app to connect to the service socket on Unix', async () => {
-    server = await createHelperServer({
-      socketPath,
-      secret: SECRET,
-      kernel: fakeKernel(),
-    })
+  it.skipIf(process.platform === 'win32')(
+    'allows an unprivileged app to connect to the service socket on Unix',
+    async () => {
+      server = await createHelperServer({
+        socketPath,
+        secret: SECRET,
+        kernel: fakeKernel(),
+      })
 
-    expect((await lstat(socketPath)).mode & 0o777).toBe(0o666)
-  })
+      expect((await lstat(socketPath)).mode & 0o777).toBe(0o666)
+    },
+  )
 
-  it('recovers a socket left by a crashed helper', async () => {
-    const child = spawn(
-      process.execPath,
-      [
-        '-e',
-        `
+  it.skipIf(process.platform === 'win32')(
+    'recovers a socket left by a crashed helper',
+    async () => {
+      const child = spawn(
+        process.execPath,
+        [
+          '-e',
+          `
       require('node:net').createServer().listen(process.argv[1], () => {
         process.stdout.write('ready');
       });
     `,
-        socketPath,
-      ],
-      { stdio: ['ignore', 'pipe', 'pipe'] },
-    )
-    try {
-      await once(child.stdout!, 'data')
-    } finally {
-      const exited = once(child, 'exit')
-      child.kill('SIGKILL')
-      await exited
-    }
-    expect((await lstat(socketPath)).isSocket()).toBe(true)
+          socketPath,
+        ],
+        { stdio: ['ignore', 'pipe', 'pipe'] },
+      )
+      try {
+        await once(child.stdout!, 'data')
+      } finally {
+        const exited = once(child, 'exit')
+        child.kill('SIGKILL')
+        await exited
+      }
+      expect((await lstat(socketPath)).isSocket()).toBe(true)
 
-    server = await createHelperServer({
-      socketPath,
-      secret: SECRET,
-      kernel: fakeKernel(),
-    })
-    expect(
-      await roundTrip(socketPath, {
-        type: 'ping',
+      server = await createHelperServer({
+        socketPath,
         secret: SECRET,
-        version: HELPER_PROTOCOL_VERSION,
-      }),
-    ).toMatchObject({ ok: true })
-  })
+        kernel: fakeKernel(),
+      })
+      expect(
+        await roundTrip(socketPath, {
+          type: 'ping',
+          secret: SECRET,
+          version: HELPER_PROTOCOL_VERSION,
+        }),
+      ).toMatchObject({ ok: true })
+    },
+  )
 
   it('preserves a live helper and its kernel during a concurrent startup', async () => {
     const kernel = fakeKernel()
@@ -197,23 +206,34 @@ describe('createHelperServer', () => {
     ).toMatchObject({ ok: true })
   })
 
-  it('does not delete a regular file or symlink at the socket path', async () => {
-    await writeFile(socketPath, 'preserve me')
-    await expect(
-      createHelperServer({ socketPath, secret: SECRET, kernel: fakeKernel() }),
-    ).rejects.toThrow('non-socket')
-    expect(await readFile(socketPath, 'utf8')).toBe('preserve me')
+  it.skipIf(process.platform === 'win32')(
+    'does not delete a regular file or symlink at the socket path',
+    async () => {
+      await writeFile(socketPath, 'preserve me')
+      await expect(
+        createHelperServer({
+          socketPath,
+          secret: SECRET,
+          kernel: fakeKernel(),
+        }),
+      ).rejects.toThrow('non-socket')
+      expect(await readFile(socketPath, 'utf8')).toBe('preserve me')
 
-    await rm(socketPath)
-    const target = join(dir, 'target')
-    await writeFile(target, 'preserve target')
-    await symlink(target, socketPath)
-    await expect(
-      createHelperServer({ socketPath, secret: SECRET, kernel: fakeKernel() }),
-    ).rejects.toThrow('non-socket')
-    expect((await lstat(socketPath)).isSymbolicLink()).toBe(true)
-    expect(await readFile(target, 'utf8')).toBe('preserve target')
-  })
+      await rm(socketPath)
+      const target = join(dir, 'target')
+      await writeFile(target, 'preserve target')
+      await symlink(target, socketPath)
+      await expect(
+        createHelperServer({
+          socketPath,
+          secret: SECRET,
+          kernel: fakeKernel(),
+        }),
+      ).rejects.toThrow('non-socket')
+      expect((await lstat(socketPath)).isSymbolicLink()).toBe(true)
+      expect(await readFile(target, 'utf8')).toBe('preserve target')
+    },
+  )
 
   it('reports the kernel version on getVersion', async () => {
     const kernel = fakeKernel({ version: () => '7' })

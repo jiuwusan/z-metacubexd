@@ -600,3 +600,7 @@ Thanks to all the people who contribute to metacubexd!
 - [Vue.js](https://github.com/vuejs/core) - The Progressive JavaScript Framework
 - [daisyUI](https://github.com/saadeghi/daisyui) - Tailwind CSS components
 - [Tailwind CSS](https://tailwindcss.com) - Utility-first CSS framework
+
+## 开发与架构
+
+项目职责、依赖边界见 [架构说明](docs/architecture.md)，完整开发、安全、测试、CI、部署和回滚要求见 [开发规范](docs/development.md)。

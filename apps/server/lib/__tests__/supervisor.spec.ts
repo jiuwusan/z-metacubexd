@@ -1,3 +1,4 @@
+import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock the agent so we can assert how the server wires env -> createAgent,
@@ -74,8 +75,8 @@ describe('apps/server lib/supervisor', () => {
     const opts = createAgentMock.mock.calls[0]![0]
     expect(opts.binaryPath).toBe('/usr/local/bin/mihomo')
     expect(opts.homeDir).toBe('/data')
-    expect(opts.profilesDir).toBe('/data/profiles')
-    expect(opts.activeConfigPath).toBe('/data/active.yaml')
+    expect(opts.profilesDir).toBe(join('/data', 'profiles'))
+    expect(opts.activeConfigPath).toBe(join('/data', 'active.yaml'))
     expect(opts.agentToken).toBe('agent-tok')
     expect(opts.externalController).toBe('0.0.0.0:9090')
     expect(opts.secret).toBe('clash-x')
